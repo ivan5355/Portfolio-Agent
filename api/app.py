@@ -8,13 +8,19 @@ import prompts
 dotenv.load_dotenv()
 
 app = Flask(__name__)
+
+# Enable CORS for all routes. CORS is a security feature that allows or denies requests from different origins.
+# This is necessary for the frontend to make requests to the backend.
 CORS(app)  
 
+# Initialize the OpenAI client. This is used to make requests to the OpenAI API.
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 @app.route("/")
 def index():
     return "Hello, World!"
+
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -24,6 +30,9 @@ def ask():
     if not question:
         return jsonify({"error": "Question is required"}), 400
 
+    # Create the messages for the OpenAI API.
+    # The system message is the system prompt, which is the prompt that the AI will use to generate the response.
+    # The user message is the question that the user asked.
     messages = [
         {"role": "system", "content": prompts.SYSTEM_PROMPT},
         {"role": "user", "content": question},
