@@ -16,11 +16,9 @@ CORS(app)
 # Initialize the OpenAI client. This is used to make requests to the OpenAI API.
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-
 @app.route("/")
 def index():
     return "Hello, World!"
-
 
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -40,7 +38,7 @@ def ask():
 
     response = client.chat.completions.create(  
         max_tokens=500,
-        model="gpt-4o-mini",
+        model="gpt-5-nano",
         messages=messages  
     )
 

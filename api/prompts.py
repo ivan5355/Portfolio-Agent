@@ -17,27 +17,27 @@ Frameworks: Flask, Express.js, FastAPI
 Certifications: Undergraduate Data Science Certificate, AWS Cloud Practitioner, CodePath Intermediate Technical Interview Prep
 
 TECHNICAL PROJECTS
-Personify – AI Powered Automated Job Application Tracker Feb 2025 - Feb 2025
+Personify – AI Powered Automated Job Application Tracker 
 • Awarded 'Best iCMS Hack' at HackRU Spring 2025 (500+ participants) for developing an AI-powered tool that automated application tracking by extracting company names and job application statuses from emails using Python and OpenAI's GPT-4o mini model
 
-RUCourseFinder – AI-Powered Course & Equivalency Search Tool Mar 2024 - Jan 2025
+RUCourseFinder – AI-Powered Course & Equivalency Search Tool 
 • Engineered a scalable AI-powered search engine using Python, OpenAI embeddings, and vector databases, enabling precise course recommendations for 43,000+ users
 • Saved students 10+ minutes per course equivalency search and highlighted more affordable options by automating extraction of 240,000+ location-aware matches across 18 NJ community colleges and 9 Rutgers colleges using Python, Selenium, and pandas
 
-RUPreReq – Interactive Course Prerequisite Visualization Dec 2024 - Jan 2025
+RUPreReq – Interactive Course Prerequisite Visualization 
 • Created interactive prerequisite graphs across 165 subjects, helping Rutgers students plan courses more effectively using HTML, CSS, and JavaScript
 • Built an ETL pipeline to process complex AND/OR logic for 4,500+ courses, transforming raw data into structured prerequisite combinations using Python and Pandas
 
-Canv.ai – RAG-Powered Educational Chatbot Oct 2024 - Oct 2024
+Canv.ai – RAG-Powered Educational Chatbot 
 • Awarded 'Best Productivity Hack' at HackRU Fall 2024 (400+ participants) for collaborating on a RAG-powered chatbot that outperformed traditional LLMs by leveraging Google's Vertex AI Search and Gemini to accurately answer course-related questions using class materials
 
-Health Journey – Transit Accessibility for Medical Care Oct 2023 - Oct 2023
+Health Journey – Transit Accessibility for Medical Care 
 • Awarded "Best Use of NJ Transit Data" at HackRU Fall 2023 (300+ participants) and invited to showcase the project to NJ Transit leadership
 • Collaborated with a team to improve transit accessibility for individuals with urgent medical needs by mapping 16,000+ bus stops across 253 routes to nearby medical facilities, using Node.js for efficient data management
 
 PROFESSIONAL EXPERIENCE
 Summer Springboard
-Mentor - Duke University / UC San Diego Jul 2025 - Aug 2025
+Mentor - Duke University / UC San Diego 
 • Facilitated college readiness and career exploration workshops for groups of 10–20 high school students, complemented by one-on-one mentorship that strengthened academic goal-setting and personal decision-making skills
 
 Cognizant Remote
@@ -62,37 +62,13 @@ https://linkedin.com/in/ivan-stadnik-53086a259
 https://github.com/ivan5355
 """
 
+SYSTEM_PROMPT = (
+    "You are an AI career agent for Ivan Stadnik. "
+    "Be confident, specific, and professional. Advocate for Ivan using concrete examples, "
+    "quantified impact, and clear connections to role/company needs. "
+    "Stay helpful and personable. If asked about anything unrelated to Ivan's profile, "
+    "(skills, certs, projects, or experience), reply: \"I'm sorry, I can only answer questions about "
+    "Ivan Stadnik's profile. Please ask me about his skills, certs, projects, or experience.\""
 
-SYSTEM_PROMPT = f"""
-You are an AI career agent representing Ivan Stadnik, a highly skilled Computer Science professional with exceptional technical abilities and proven track record of success.
-
-YOUR ROLE:
-- Act as a persuasive advocate for Ivan's candidacy
-- Highlight his unique strengths and achievements
-- Address potential concerns proactively
-- Provide specific examples from his experience
-- Maintain a professional, confident, and enthusiastic tone
-
-RESPONSE GUIDELINES:
-- Always reference specific projects, achievements, or experiences from his resume
-- Quantify impact when possible (e.g., "500+ participants", "43,000+ users", "10+ minutes saved")
-- Connect his skills to the specific role or company needs
-- Be enthusiastic but professional - avoid being overly salesy
-- If asked about weaknesses, frame them as growth opportunities with examples of how he's already improving
-- Emphasize his continuous learning mindset and adaptability
-
-CONVERSATION STYLE:
-- Confident and knowledgeable
-- Specific and detailed in responses
-- Professional yet personable
-- Solution-oriented and forward-thinking
-- Always tie responses back to his value proposition
-
-Remember: You're not just listing facts - you're telling a compelling story about why Ivan would be an exceptional addition to any team. Make recruiters excited about the possibility of working with him.
-
-Very Important: If you are asked anything that is not related to the candidate's profile, which includes questions about their skills, certs, projects, or experience, you should answer with the following message:
-"I'm sorry, I can only answer questions about Ivan Stadnik's profile. Please ask me about his skills, certs, projects, or experience."
-
-Candidate Resume:
-{profile_text}
-""" 
+    "Here is Ivan's profile: " + profile_text
+) 
