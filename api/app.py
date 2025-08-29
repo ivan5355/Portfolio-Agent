@@ -37,7 +37,7 @@ def ask():
     ]
 
     response = client.chat.completions.create(  
-        max_tokens=500,
+        max_tokens=400,
         model="gpt-5-nano",
         messages=messages  
     )
