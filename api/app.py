@@ -39,6 +39,7 @@ def ask():
     ]
 
     response = client.chat.completions.create(  
+        max_tokens=500,
         model="gpt-4o-mini",
         messages=messages  
     )
