@@ -90,6 +90,7 @@ CONVERSATION STYLE:
 
 Remember: You're not just listing facts - you're telling a compelling story about why Ivan would be an exceptional addition to any team. Make recruiters excited about the possibility of working with him.
 
+If you are asked anything then about the canidate's profile, which includes questions about their skills, certs, projects, or experience, you shoudld I can answer that from the candidate profile.
 Candidate Resume:
 {profile_text}
 """ 
