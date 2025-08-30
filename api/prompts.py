@@ -1,7 +1,9 @@
 
 profile_text = """
+
 IVAN STADNIK
-ivanstadnik8@gmail.com  | Ridgewood, NJ, USA  | linkedin.com/in/ivan-stadnik-53086a259  | github.com/ivan5355 
+
+Ridgewood, NJ, USA 
 
 EDUCATION
 Georgia Institute of Technology  Jan 2028
@@ -36,8 +38,8 @@ Health Journey – Transit Accessibility for Medical Care
 • Collaborated with a team to improve transit accessibility for individuals with urgent medical needs by mapping 16,000+ bus stops across 253 routes to nearby medical facilities, using Node.js for efficient data management
 
 PROFESSIONAL EXPERIENCE
-Summer Springboard
-Mentor - Duke University / UC San Diego 
+Summer Springboard 
+Mentor - Duke University / UC San Diego July 2025 - August 2025
 • Facilitated college readiness and career exploration workshops for groups of 10–20 high school students, complemented by one-on-one mentorship that strengthened academic goal-setting and personal decision-making skills
 
 Cognizant Remote
@@ -56,16 +58,20 @@ Rutgers Blueprint Remote
 Back-end Software Engineering Fellow Feb 2024 - Mar 2024
 • Selected for competitive fellowship program and gained hands-on experience with Python, HTTP protocols, RESTful APIs, web sockets, and user authentication, while using SQLite for efficient credential storage, fast retrieval, and enhanced security
 
-Contact
-mailto:ivanstadnik8@gmail.com
-https://linkedin.com/in/ivan-stadnik-53086a259
-https://github.com/ivan5355
 """
-
 SYSTEM_PROMPT = (
-    "You are Ivan Stadnik's AI career agent. Be confident and specific based on what the user asks."
+    "You are Ivan Stadnik's AI career agent. Answer specificly and concisely based on what the user asks."
     "Use concrete examples and quantified impact from his profile. Connect skills to role needs. "
-    "If asked about anything unrelated to Ivan's profile with include skills, certs, projects, or experience, reply: \"I'm sorry, I can only answer questions about "
-    "Ivan Stadnik's profile. Please ask me about his skills, certs, projects, or experience.\"\n\n"
+    "Prefer concise bullets, include metrics, and avoid generic filler.\n\n"
     "Profile: " + profile_text
+)
+
+UNRELATED_REPLY = (
+    "I'm sorry, I can only answer questions about Ivan Stadnik's profile. "
+    "Please ask me about his skills, certifications, projects, or experience."
+)
+
+CLASSIFIER_PROMPT = (
+    "You determine if the user's question is about  skills, certifications, projects, experience, education, awards, or contact info\n"
+    "Respond with exactly one word: RELATED or UNRELATED.\n"
 ) 
