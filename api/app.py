@@ -4,6 +4,7 @@ from flask_cors import CORS
 from openai import OpenAI
 import os
 from prompts import SYSTEM_PROMPT, CLASSIFIER_PROMPT, UNRELATED_REPLY
+import tiktoken
 
 dotenv.load_dotenv()
 
@@ -20,6 +21,9 @@ if not os.getenv("OPENAI_API_KEY"):
 # Initialize the OpenAI client. This is used to make requests to the OpenAI API.
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Maximum allowed input tokens for the model
+MAX_INPUT_TOKENS = 50
+
 @app.route("/")
 def index():
     return "Hello, World!"
@@ -34,12 +38,25 @@ def ask():
     if not question:
         return jsonify({"error": "Question is required"}), 400
 
+    try:
+        print("Using model-specific encoding")
+        enc = tiktoken.encoding_for_model("gpt-5-nano")
+    except Exception:
+        print("Using fallback encoding")
+        # Fallback to a common encoding if model-specific encoding is unavailable
+        enc = tiktoken.get_encoding("cl100k_base")
+
+    question_tokens = len(enc.encode(question))
+    if question_tokens > MAX_INPUT_TOKENS:
+        return jsonify({
+            "answer": "Question is too long. Please ask a shorter question."
+        })
+
     # First, classify whether the question is related to Ivan's profile
     classification_messages = [
         {"role": "system", "content": CLASSIFIER_PROMPT},
         {"role": "user", "content": question},
     ]
-
 
     classification_response = client.chat.completions.create(
         model="gpt-5-nano",
