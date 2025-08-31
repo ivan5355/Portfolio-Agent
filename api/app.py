@@ -28,7 +28,6 @@ MAX_INPUT_TOKENS = 50
 def index():
     return "Hello, World!"
 
-
 @app.route("/ask", methods=["POST"])
 def ask():
 
