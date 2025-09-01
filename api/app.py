@@ -31,7 +31,7 @@ DAILY_REQUEST_LIMIT = 5
 request_counts_lock = threading.Lock()
 request_counts = {}
 
-
+# Get the client id by IP address
 def get_client_id():
     """Get the client id by IP address"""
 
@@ -50,6 +50,8 @@ def today_key():
 
 def has_exceeded_daily_limit(client_id: str):
     """Return (exceeded, limit, used). Increments usage if not exceeded."""
+
+    # Get the key for the client id and todaym
     key = (client_id, today_key())
 
     # Get the request count for the client id and today
@@ -59,12 +61,11 @@ def has_exceeded_daily_limit(client_id: str):
 
         # If the request count is greater than the daily request limit, return True
         if count >= DAILY_REQUEST_LIMIT:
-            return True, DAILY_REQUEST_LIMIT, count
+            return True
+
         request_counts[key] = count + 1
 
-        # Return False, the daily request limit, and the request count
-        return False, DAILY_REQUEST_LIMIT, request_counts[key]
-
+        return False
 
 @app.route("/")
 def index():
@@ -81,7 +82,9 @@ def ask():
 
     # Enforce daily request limit per IP address
     client_id = get_client_id()
-    exceeded, _, _ = has_exceeded_daily_limit(client_id)
+    exceeded = has_exceeded_daily_limit(client_id)
+
+    # If the daily request limit is exceeded, return a message
     if exceeded:
         return jsonify({
             "answer": f"You've reached the daily limit of {DAILY_REQUEST_LIMIT} requests for your IP. Please try again tomorrow."
@@ -92,18 +95,19 @@ def ask():
         enc = tiktoken.encoding_for_model("gpt-5-nano")
     except Exception:
         print("Using fallback encoding")
-        
+
         # Fallback to a common encoding if model-specific encoding is unavailable
         enc = tiktoken.get_encoding("cl100k_base")
 
     question_tokens = len(enc.encode(question))
     print(f"Question tokens: {question_tokens}")
+
+    # If the question is too long, return a message
     if question_tokens > MAX_INPUT_TOKENS:
         return jsonify({
             "answer": "Question is too long. Please ask a shorter question."
         })
 
-    # First, classify whether the question is related to Ivan's profile
     classification_messages = [
         {"role": "system", "content": CLASSIFIER_PROMPT},
         {"role": "user", "content": question},
@@ -115,8 +119,11 @@ def ask():
     )
     label = (classification_response.choices[0].message.content or "").strip().upper()
     
+    # If the question is unrelated to Ivan's profile, return a message
     if label.startswith("UNRELATED"):
             return jsonify({"answer": UNRELATED_REPLY})
+
+    # If the question is related to Ivan's profile, return the answer
     else:
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
