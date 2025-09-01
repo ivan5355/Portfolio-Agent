@@ -5,8 +5,6 @@ from openai import OpenAI
 import os
 from prompts import SYSTEM_PROMPT, CLASSIFIER_PROMPT, UNRELATED_REPLY
 import tiktoken
-from datetime import datetime, timezone
-import threading
 
 dotenv.load_dotenv()
 
@@ -16,56 +14,21 @@ app = Flask(__name__)
 # This is necessary for the frontend to make requests to the backend.
 CORS(app)  
 
-# Check if API key is set
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError("OPENAI_API_KEY environment variable is not set")
+# Global variable to store the OpenAI client (lazy initialization)
+client = None
 
-# Initialize the OpenAI client. This is used to make requests to the OpenAI API.
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def get_openai_client():
+    """Get or create OpenAI client with lazy initialization"""
+    global client
+    if client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY environment variable is not set")
+        client = OpenAI(api_key=api_key)
+    return client
 
 # Maximum allowed input tokens for the model
-MAX_INPUT_TOKENS = 50
-DAILY_REQUEST_LIMIT = 5
-
-# In-memory request counter: maps (client_id, YYYY-MM-DD) -> count
-request_counts_lock = threading.Lock()
-request_counts = {}
-
-# Get the client id by IP address
-def get_client_id():
-    """Get the client id by IP address"""
-
-    # Get the IP address from the X-Forwarded-For header
-    fwd = request.headers.get("X-Forwarded-For")
-
-    # If the X-Forwarded-For header is not set, use the remote address
-    if fwd:
-        ip = fwd.split(",")[0].strip()
-    else:
-        ip = request.remote_addr or "unknown"
-    return f"ip:{ip}"
-
-def today_key():
-    return datetime.now(timezone.utc).date().isoformat()
-
-def has_exceeded_daily_limit(client_id: str):
-    """Return (exceeded, limit, used). Increments usage if not exceeded."""
-
-    # Get the key for the client id and todaym
-    key = (client_id, today_key())
-
-    # Get the request count for the client id and today
-    with request_counts_lock:
-
-        count = request_counts.get(key, 0)
-
-        # If the request count is greater than the daily request limit, return True
-        if count >= DAILY_REQUEST_LIMIT:
-            return True
-
-        request_counts[key] = count + 1
-
-        return False
+MAX_INPUT_TOKENS = 1000
 
 @app.route("/")
 def index():
@@ -73,70 +36,63 @@ def index():
 
 @app.route("/ask", methods=["POST"])
 def ask():
-
-    data = request.json
-    question = data.get("question")
-
-    if not question:
-        return jsonify({"error": "Question is required"}), 400
-
-    # Enforce daily request limit per IP address
-    client_id = get_client_id()
-    exceeded = has_exceeded_daily_limit(client_id)
-
-    # If the daily request limit is exceeded, return a message
-    if exceeded:
-        return jsonify({
-            "answer": f"You've reached the daily request limit. Please try again tomorrow."
-        })
-
     try:
-        print("Using model-specific encoding")
-        enc = tiktoken.encoding_for_model("gpt-5-nano")
-    except Exception:
-        print("Using fallback encoding")
+        # Get the OpenAI client (will initialize if needed)
+        openai_client = get_openai_client()
+        
+        data = request.json
+        question = data.get("question")
 
-        # Fallback to a common encoding if model-specific encoding is unavailable
-        enc = tiktoken.get_encoding("cl100k_base")
+        if not question:
+            return jsonify({"error": "Question is required"}), 400
 
-    question_tokens = len(enc.encode(question))
-    print(f"Question tokens: {question_tokens}")
+        # Check token count using tiktoken
+        try:
+            enc = tiktoken.encoding_for_model("gpt-4o-mini")
+        except Exception:
+            # Fallback to a common encoding if model-specific encoding is unavailable
+            enc = tiktoken.get_encoding("cl100k_base")
 
-    # If the question is too long, return a message
-    if question_tokens > MAX_INPUT_TOKENS:
-        return jsonify({
-            "answer": "Question is too long. Please ask a shorter question."
-        })
+        question_tokens = len(enc.encode(question))
+        print(f"Question tokens: {question_tokens}")
 
-    classification_messages = [
-        {"role": "system", "content": CLASSIFIER_PROMPT},
-        {"role": "user", "content": question},
-    ]
+        # If the question is too long, return a message
+        if question_tokens > MAX_INPUT_TOKENS:
+            return jsonify({
+                "answer": "Question is too long. Please ask a shorter question."
+            })
 
-    classification_response = client.chat.completions.create(
-        model="gpt-5-nano",
-        messages=classification_messages,
-    )
-    
-    label = (classification_response.choices[0].message.content or "").strip().upper()
-    
-    # If the question is unrelated to Ivan's profile, return a message
-    if label.startswith("UNRELATED"):
-            return jsonify({"answer": UNRELATED_REPLY})
-
-    # If the question is related to Ivan's profile, return the answer
-    else:
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+        # First, classify whether the question is related to Ivan's profile
+        classification_messages = [
+            {"role": "system", "content": CLASSIFIER_PROMPT},
             {"role": "user", "content": question},
         ]
 
-        response = client.chat.completions.create(
+        classification_response = openai_client.chat.completions.create(
             model="gpt-5-nano",
-            messages=messages,
+            messages=classification_messages,
         )
+        label = (classification_response.choices[0].message.content or "").strip().upper()
         
-        return jsonify({"answer": response.choices[0].message.content})  
+        if label.startswith("UNRELATED"):
+                return jsonify({"answer": UNRELATED_REPLY})
+        else:
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": question},
+            ]
+
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+            )
+            
+            return jsonify({"answer": response.choices[0].message.content})  
+    
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
