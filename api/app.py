@@ -89,18 +89,7 @@ dotenv.load_dotenv()
 
 app = Flask(__name__)
 
-# Enable CORS for all routes. CORS is a security feature that allows or denies requests from different origins.
-# This is necessary for the frontend to make requests to the backend.
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
-
-# Ensure CORS headers are always present
-@app.after_request
-def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Max-Age"] = "86400"
-    return response
+CORS(app)
 
 # Global variable to store the OpenAI client (lazy initialization)
 client = None
