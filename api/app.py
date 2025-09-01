@@ -87,7 +87,7 @@ def ask():
     # If the daily request limit is exceeded, return a message
     if exceeded:
         return jsonify({
-            "answer": f"You've reached the daily limit of {DAILY_REQUEST_LIMIT} requests for your IP. Please try again tomorrow."
+            "answer": f"You've reached the daily request limit. Please try again tomorrow."
         })
 
     try:
@@ -117,6 +117,7 @@ def ask():
         model="gpt-5-nano",
         messages=classification_messages,
     )
+    
     label = (classification_response.choices[0].message.content or "").strip().upper()
     
     # If the question is unrelated to Ivan's profile, return a message
@@ -132,7 +133,7 @@ def ask():
 
         response = client.chat.completions.create(
             model="gpt-5-nano",
-            messages=messages
+            messages=messages,
         )
         
         return jsonify({"answer": response.choices[0].message.content})  
