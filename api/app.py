@@ -91,7 +91,16 @@ app = Flask(__name__)
 
 # Enable CORS for all routes. CORS is a security feature that allows or denies requests from different origins.
 # This is necessary for the frontend to make requests to the backend.
-CORS(app)  
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
+
+# Ensure CORS headers are always present
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Max-Age"] = "86400"
+    return response
 
 # Global variable to store the OpenAI client (lazy initialization)
 client = None
@@ -113,8 +122,10 @@ MAX_INPUT_TOKENS = 1000
 def index():
     return "Hello, World!"
 
-@app.route("/ask", methods=["POST"])
+@app.route("/ask", methods=["POST", "OPTIONS"])
 def ask():
+    if request.method == "OPTIONS":
+        return "", 204
     try:
         # Get the OpenAI client (will initialize if needed)
         openai_client = get_openai_client()
