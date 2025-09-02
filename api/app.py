@@ -4,6 +4,8 @@ from flask_cors import CORS
 from openai import OpenAI
 import os
 import tiktoken
+# Rate limiting setup (IP-based)
+from flask_limiter import Limiter
 
 # Ensure CLASSIFIER_PROMPT is defined before any route uses it
 CLASSIFIER_PROMPT = (
@@ -91,11 +93,30 @@ app = Flask(__name__)
 
 CORS(app)
 
+
+
+
+def _get_client_ip():
+    xff = request.headers.get("X-Forwarded-For", "")
+    if xff:
+        first_ip = xff.split(",")[0].strip()
+        if first_ip:
+            return first_ip
+    return request.remote_addr
+
+
+limiter = Limiter(
+    key_func=_get_client_ip,
+    app=app,
+    storage_uri=os.getenv("RATELIMIT_STORAGE_URI", "memory://"),
+    default_limits=[],
+)
+
 # Global variable to store the OpenAI client (lazy initialization)
 client = None
 
 def get_openai_client():
-    """Get or create OpenAI client with lazy initialization"""
+
     global client
     if client is None:
         api_key = os.getenv("OPENAI_API_KEY")
@@ -107,14 +128,19 @@ def get_openai_client():
 # Maximum allowed input tokens for the model
 MAX_INPUT_TOKENS = 1000
 
+# JSON handler for 429 Too Many Requests
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({"answer": "rate limit exceeded try again tomorrow"}), 200
+
 @app.route("/")
 def index():
     return "Hello, World!"
 
-@app.route("/ask", methods=["POST", "OPTIONS"])
+@app.route("/ask", methods=["POST"])
+@limiter.limit("4 per day", methods=["POST"])
 def ask():
-    if request.method == "OPTIONS":
-        return "", 204
+  
     try:
         # Get the OpenAI client (will initialize if needed)
         openai_client = get_openai_client()
@@ -162,7 +188,7 @@ def ask():
             ]
 
             response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5-nano",
                 messages=messages,
             )
             
@@ -170,8 +196,7 @@ def ask():
     
     except ValueError as e:
         return jsonify({"error": str(e)}), 500
-    except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+   
 
 
 if __name__ == "__main__":
