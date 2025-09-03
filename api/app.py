@@ -6,7 +6,7 @@ import os
 import tiktoken
 import dotenv
 from flask_limiter import Limiter
-from prompts import SYSTEM_PROMPT, CLASSIFIER_PROMPT, UNRELATED_REPLY
+from .prompts import SYSTEM_PROMPT, CLASSIFIER_PROMPT, UNRELATED_REPLY
 
 dotenv.load_dotenv()
 
